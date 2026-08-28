@@ -136,13 +136,25 @@
         .delete-btn:hover {
             background-color: #c82333;
         }
+        .api-note {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: -10px;
+            margin-bottom: 15px;
+            display: block;
+        }
     </style>
 </head>
 <body>
 
 <div class="dashboard">
+    <!-- Video Generator Panel -->
     <div class="panel">
         <h2>🎥 LTX-Video Generator</h2>
+        
+        <input type="password" id="hf-token" placeholder="Hugging Face Token (starts with hf_)..." required>
+        <span class="api-note">Get your free token at <a href="https://huggingface.co/settings/tokens" target="_blank">huggingface.co/settings/tokens</a>. Saved locally only.</span>
+
         <textarea id="prompt" placeholder="Enter your detailed video prompt here..."></textarea>
         <button id="generate-btn">Generate Video</button>
         
@@ -154,6 +166,7 @@
         </div>
     </div>
 
+    <!-- Marketing Calendar Panel -->
     <div class="panel">
         <h2>📅 Content Planner</h2>
         <form id="calendar-form">
@@ -173,10 +186,12 @@
         </form>
 
         <div class="post-list" id="post-list">
-            </div>
+            <!-- Scheduled posts will load here -->
+        </div>
     </div>
 </div>
 
+<!-- Scripts -->
 <script type="module">
     import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
 
@@ -186,25 +201,40 @@
     const generateBtn = document.getElementById('generate-btn');
     const downloadBtn = document.getElementById('download-btn');
     const promptInput = document.getElementById('prompt');
+    const tokenInput = document.getElementById('hf-token');
     const statusDiv = document.getElementById('status');
     const resultContainer = document.getElementById('result-container');
     const outputVideo = document.getElementById('output-video');
 
     let currentBlobUrl = null;
 
+    // Load saved token on boot
+    tokenInput.value = localStorage.getItem('hf_token_saved') || '';
+
     generateBtn.addEventListener('click', async () => {
         const prompt = promptInput.value.trim();
-        if (!prompt) {
-            alert("Please enter a prompt first.");
+        const token = tokenInput.value.trim();
+
+        if (!token) {
+            alert("Please enter your Hugging Face token.");
             return;
         }
+        if (!prompt) {
+            alert("Please enter a prompt.");
+            return;
+        }
+
+        // Save token to localStorage for future visits
+        localStorage.setItem('hf_token_saved', token);
 
         try {
             generateBtn.disabled = true;
             statusDiv.textContent = "Connecting to LTX-Video on Hugging Face Spaces...";
             resultContainer.style.display = 'none';
 
-            const app = await client("Lightricks/LTX-Video");
+            // Pass the API token to the client connection
+            const app = await client("Lightricks/LTX-Video", { hf_token: token });
+            
             statusDiv.textContent = "Generating video (this usually takes a few minutes)...";
             
             const result = await app.predict("/predict", [		
@@ -245,7 +275,6 @@
         document.body.removeChild(a);
     });
 
-
     // ==========================================
     // 2. LOCALSTORAGE CONTENT CALENDAR LOGIC
     // ==========================================
@@ -253,11 +282,9 @@
     const postList = document.getElementById('post-list');
     const STORAGE_KEY = 'marketing_calendar_data';
 
-    // Load posts on boot
     function loadPosts() {
         const posts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
         
-        // Sort by date closest to furthest
         posts.sort((a, b) => new Date(a.date) - new Date(b.date));
 
         if (posts.length === 0) {
@@ -275,7 +302,6 @@
         `).join('');
     }
 
-    // Save new post
     calendarForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
@@ -291,7 +317,6 @@
         loadPosts();
     });
 
-    // Make delete function available globally so inline onclick works
     window.deletePost = function(index) {
         const posts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
         posts.splice(index, 1);
@@ -299,7 +324,6 @@
         loadPosts();
     };
 
-    // Initialize calendar on page load
     loadPosts();
 </script>
 
