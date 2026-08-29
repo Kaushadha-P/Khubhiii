@@ -233,14 +233,26 @@
             statusDiv.textContent = "Connecting to LTX-Video on Hugging Face Spaces...";
             resultContainer.style.display = 'none';
 
-            // Pass the API token to the client connection
+           // Pass the API token to the client connection
             const app = await client("Lightricks/ltx-video-distilled", { hf_token: token });
             
             statusDiv.textContent = "Generating video (this usually takes a few minutes)...";
             
+            // Pass all 13 required parameters to the /text_to_video endpoint
             const result = await app.predict("/text_to_video", [		
-                prompt,
-                "", // negative prompt
+                prompt, // 1. Your text prompt
+                "worst quality, inconsistent motion, blurry, jittery, distorted", // 2. Negative prompt
+                null, // 3. Input image (not needed for text-to-video)
+                null, // 4. Input video (not needed for text-to-video)
+                512,  // 5. Video height (must be divisible by 32)
+                704,  // 6. Video width (must be divisible by 32)
+                "text-to-video", // 7. Generation mode
+                2.0,  // 8. Video duration in seconds
+                0,    // 9. Video frames to use (0 for text-to-video)
+                42,   // 10. Default seed
+                true, // 11. Randomize seed (creates a new video every time)
+                3.0,  // 12. Guidance scale (how strictly it follows the prompt)
+                true  // 13. Improve texture (makes the video look better)
             ]);
 
             statusDiv.textContent = "Processing and converting stream...";
