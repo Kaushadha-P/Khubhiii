@@ -238,7 +238,7 @@
             
             statusDiv.textContent = "Generating video (this usually takes a few minutes)...";
             
-            const result = await app.predict("/predict", [		
+            const result = await app.predict("/text_to_video", [		
                 prompt,
                 "", // negative prompt
             ]);
