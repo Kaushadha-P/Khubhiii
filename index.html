@@ -255,18 +255,13 @@
                 true  // 13. Improve texture (makes the video look better)
             ]);
 
-            statusDiv.textContent = "Processing and converting stream...";
-            const videoUrl = result.data[0].url; 
+            statusDiv.textContent = "Processing and downloading video...";
+            
+            // Pointing to the correct .video.url path!
+            const videoUrl = result.data[0].video.url; 
 
-            // Fetch the video file securely using your authorization token
-            const response = await fetch(videoUrl, {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            
-            if (!response.ok) {
-                throw new Error("Failed to download the video file from Hugging Face.");
-            }
-            
+            // Convert directly to local file (no custom auth headers needed)
+            const response = await fetch(videoUrl);
             const blob = await response.blob();
             
             if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl); 
