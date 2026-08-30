@@ -258,8 +258,15 @@
             statusDiv.textContent = "Processing and converting stream...";
             const videoUrl = result.data[0].url; 
 
-            // Convert to blob to bypass cross-origin restrictions on download
-            const response = await fetch(videoUrl);
+            // Fetch the video file securely using your authorization token
+            const response = await fetch(videoUrl, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            
+            if (!response.ok) {
+                throw new Error("Failed to download the video file from Hugging Face.");
+            }
+            
             const blob = await response.blob();
             
             if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl); 
